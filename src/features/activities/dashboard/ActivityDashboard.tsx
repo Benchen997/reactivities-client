@@ -1,6 +1,7 @@
 import { Grid2, Typography } from "@mui/material";
 import ActivityList from "./ActivityList.tsx";
 import {useActivities} from "../../../lib/hooks/useActivities.ts";
+import ActivityFilters from "./ActivityFilters.tsx";
 
 
 export default function ActivityDashboard() {
@@ -15,7 +16,7 @@ export default function ActivityDashboard() {
                 <ActivityList/>
             </Grid2>
             <Grid2 size={5}>
-               Activity Filters go here
+               <ActivityFilters/>
             </Grid2>
         </Grid2>
     )
