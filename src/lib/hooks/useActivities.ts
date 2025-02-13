@@ -2,7 +2,7 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Activity} from "../types";
 import agent from "../api/agent.ts";
 
-export const useActivities = () => {
+export const useActivities = (id?: string) => {
 
     const queryClient = useQueryClient();
 
@@ -12,6 +12,16 @@ export const useActivities = () => {
             const response = await agent.get<Activity[]>('/activities');
             return response.data;
         }
+    });
+
+    const { data: activity, isLoading: isLoadingActivity } = useQuery({
+        queryKey:['activity', id],
+        queryFn: async () => {
+            const response = await agent.get<Activity>(`/activities/${id}`);
+            return response.data;
+        },
+        // 只有在 id 存在的情况下才会启用这个查询
+        enabled: !!id
     });
 
     const updateActivity = useMutation({
@@ -27,7 +37,8 @@ export const useActivities = () => {
 
     const createActivity = useMutation({
         mutationFn:async (activity: Activity) => {
-            await agent.post("/activities", activity);
+            const response = await agent.post("/activities", activity);
+            return response.data;
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({
@@ -49,5 +60,5 @@ export const useActivities = () => {
     })
 
 
-    return { activities, isPending, updateActivity, createActivity, deleteActivity };
+    return { activities, isPending, updateActivity, createActivity, deleteActivity, activity, isLoadingActivity };
 }

@@ -2,15 +2,18 @@ import {Box, Button, Paper, TextField, Typography} from "@mui/material";
 import {Activity} from "../../../lib/types";
 import {FormEvent} from "react";
 import { useActivities } from "../../../lib/hooks/useActivities.ts";
+import {NavLink, useNavigate, useParams} from "react-router";
 
-type props = {
-    closeForm: () => void
-    activity: Activity | undefined
-}
 
-export default function ActivityForm({closeForm, activity}: props) {
 
-    const { updateActivity, createActivity } = useActivities();
+export default function ActivityForm() {
+
+    const { id } = useParams<{id: string}>();
+
+    const navigate = useNavigate();
+
+    const { updateActivity, createActivity, activity, isLoadingActivity } = useActivities(id);
+
 
     const handleSubmit = async (event:FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -23,12 +26,17 @@ export default function ActivityForm({closeForm, activity}: props) {
         if (activity) {
             data.id = activity.id;
             await updateActivity.mutateAsync(data as unknown as Activity);
-            closeForm();
+            navigate(`/activities/${activity.id}`);
         } else {
-            await createActivity.mutateAsync(data as unknown as Activity);
-            closeForm();
+            createActivity.mutate(data as unknown as Activity, {
+                onSuccess: (id) => {
+                    navigate(`/activities/${id}`);
+                }
+            });
         }
     }
+
+    if (isLoadingActivity) return <Typography variant={'h4'}>Loading...</Typography>
 
     return (
         <Paper sx={{ borderRadius: 3, padding: 3 }}>
@@ -50,7 +58,7 @@ export default function ActivityForm({closeForm, activity}: props) {
                 <TextField name={'city'} label={'City'} defaultValue={activity?.city}/>
                 <TextField name={'venue'} label={'Venue'} defaultValue={activity?.venue}/>
                 <Box display={"flex"} justifyContent={"end"} gap={3}>
-                    <Button color={"inherit"} onClick={() => closeForm()}>Cancel</Button>
+                    <Button component={NavLink} to={`/activities`} color={"inherit"}>Cancel</Button>
                     <Button
                         type={'submit'}
                         variant={"contained"}

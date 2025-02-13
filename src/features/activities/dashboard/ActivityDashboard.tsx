@@ -1,42 +1,21 @@
-import { Grid2 } from "@mui/material";
-import {Activity} from "../../../lib/types";
+import { Grid2, Typography } from "@mui/material";
 import ActivityList from "./ActivityList.tsx";
-import ActivityDetail from "../details/ActivityDetail.tsx";
-import ActivityForm from "../form/ActivityForm.tsx";
+import {useActivities} from "../../../lib/hooks/useActivities.ts";
 
-type Props = {
-    activities: Activity[]
-    selectActivity: (id: string) => void
-    cancelSelectActivity: () => void
-    selectedActivity: Activity | undefined
-    openForm: (id?: string) => void
-    closeForm: () => void
-    editMode: boolean
-}
 
-export default function ActivityDashboard(
-    { activities, selectedActivity, selectActivity, cancelSelectActivity, openForm, closeForm, editMode }: Props) {
+export default function ActivityDashboard() {
+
+    const { activities, isPending } = useActivities();
+
+    if (!activities || isPending) return <Typography>Loading...</Typography>;
+
     return (
         <Grid2 container={true} spacing={3}>
             <Grid2 size={7}>
-                <ActivityList
-                    activities={activities}
-                    selectActivity={selectActivity}
-                />
+                <ActivityList/>
             </Grid2>
             <Grid2 size={5}>
-                {
-                    selectedActivity && !editMode &&
-                    <ActivityDetail
-                        activity={selectedActivity}
-                        cancelSelectActivity={cancelSelectActivity}
-                        openForm={openForm}
-                    />
-                }
-                {
-                    editMode &&
-                    <ActivityForm closeForm={closeForm} activity={selectedActivity}/>
-                }
+               Activity Filters go here
             </Grid2>
         </Grid2>
     )
