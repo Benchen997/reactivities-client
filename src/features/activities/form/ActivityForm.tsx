@@ -1,62 +1,66 @@
-import {Box, Button, Paper, TextField, Typography} from "@mui/material";
-import {Activity} from "../../../lib/types";
-import {FormEvent} from "react";
+import {Box, Button, Paper, Typography} from "@mui/material";
+import {useEffect} from "react";
 import { useActivities } from "../../../lib/hooks/useActivities.ts";
-import {NavLink, useNavigate, useParams} from "react-router";
+import {NavLink, useParams} from "react-router";
+import {FieldValues, useForm} from "react-hook-form";
+import {activitySchema, ActivitySchema} from "../../../lib/schemas/activitySchema.ts";
+import {zodResolver} from "@hookform/resolvers/zod";
+import TextInput from "../../../app/shared/TextInput.tsx";
+import SelectInput from "../../../app/shared/SelectInput.tsx";
+import {categoryOptions} from "./categoryOptions.ts";
+import DateTimeInput from "../../../app/shared/DateTimeInput.tsx";
 
 
 
 export default function ActivityForm() {
 
-    const { id } = useParams<{id: string}>();
+    const { control, reset } = useForm<ActivitySchema>({
+        mode:'onTouched',
+        resolver: zodResolver(activitySchema),
+    });
 
-    const navigate = useNavigate();
+    const { id } = useParams<{id: string}>();
 
     const { updateActivity, createActivity, activity, isLoadingActivity } = useActivities(id);
 
-
-    const handleSubmit = async (event:FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const formData = new FormData(event.currentTarget);
-
-        const data : { [key: string]: FormDataEntryValue } = {};
-        formData.forEach((value, key) => {
-            data[key] = value;
-        });
+    useEffect(() => {
         if (activity) {
-            data.id = activity.id;
-            await updateActivity.mutateAsync(data as unknown as Activity);
-            navigate(`/activities/${activity.id}`);
-        } else {
-            createActivity.mutate(data as unknown as Activity, {
-                onSuccess: (id) => {
-                    navigate(`/activities/${id}`);
-                }
-            });
+            // make use of React form hook reset method to reset the form
+            reset(activity);
         }
+    }, [activity, reset]);
+
+    const handleSub = (data: FieldValues) => {
+        console.log(data);
     }
 
     if (isLoadingActivity) return <Typography variant={'h4'}>Loading...</Typography>
 
     return (
         <Paper sx={{ borderRadius: 3, padding: 3 }}>
+            {/* 1. form header*/}
             <Typography variant={"h5"} gutterBottom={true} color={"primary"}>
                 {
                     activity ? 'Edit Activity' : 'Create Activity'
                 }
             </Typography>
-            <Box component={"form"} onSubmit={handleSubmit} noValidate={true} autoComplete={"off"}
-                display={"flex"} flexDirection={"column"} gap={3}>
-                <TextField name={'title'} label={'Title'} defaultValue={activity?.title}/>
-                <TextField name={'description'} label={'Description'} multiline={true} rows={3} defaultValue={activity?.description}/>
-                <TextField name={'category'} label={'Category'} defaultValue={activity?.category}/>
-                <TextField name={'date'} label={'Date'} type={"date"}
-                           defaultValue={activity?.date
-                               ? new Date(activity.date).toISOString().split('T')[0]
-                               : new Date().toISOString().split('T')[0]
-                }/>
-                <TextField name={'city'} label={'City'} defaultValue={activity?.city}/>
-                <TextField name={'venue'} label={'Venue'} defaultValue={activity?.venue}/>
+
+            {/* 2. form */}
+            <Box component={"form"} onSubmit={handleSub} display={"flex"} flexDirection={"column"} gap={3}>
+
+                <TextInput label={'Title'} control={control} name={'title'} />
+
+                <TextInput label={'Description'} control={control} name={'description'} multiline rows={3}/>
+
+                <SelectInput label={'Category'} items={categoryOptions} name={'category'}  control={control}/>
+
+                <DateTimeInput label={'Date'} control={control} name={'date'} />
+
+                <TextInput label={'City'} control={control} name={'city'} />
+
+                <TextInput label={'Venue'} control={control} name={'venue'} />
+
+                {/* 3. form actions */}
                 <Box display={"flex"} justifyContent={"end"} gap={3}>
                     <Button component={NavLink} to={`/activities`} color={"inherit"}>Cancel</Button>
                     <Button
