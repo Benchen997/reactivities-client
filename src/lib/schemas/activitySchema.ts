@@ -11,8 +11,12 @@ export const activitySchema = z.object({
     description: z.string({required_error: 'Description is required'}).min(50, {message: 'Description must be at least 50 characters'}),
     category: requiredString('Category'),
     date: z.coerce.date({required_error: 'Date is required'}),
-    city: requiredString('City'),
-    venue: requiredString('Venue'),
+    location: z.object({
+        venue: requiredString('Venue'),
+        city: z.string().optional(),
+        latitude: z.coerce.number(),
+        longitude: z.coerce.number(),
+    })
 })
 
 
